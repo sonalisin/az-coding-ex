@@ -1,0 +1,54 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# AstraZeneca Coding Exercise
+
+import json
+import os
+import sys
+import math
+import pandas as pd
+
+#open file and load json file into dictionary
+
+with open('./drug-label-0001-of-0007.json') as f:
+    datas = json.load(f)
+
+
+df = pd.DataFrame.from_dict(datas["results"])
+
+year = []
+no_ing = []
+route = []
+name = []
+
+time = df['effective_time']
+ingred = df['spl_product_data_elements']
+
+for each in df['openfda']:
+    route.append((str)(each.get('route')))
+    name.append((str)(each.get('generic_name')))
+
+for date in time:
+    year.append(date[:4])
+    
+#assuming that each comma indicates a new ingredient
+for i in ingred:
+    no_ing.append((len((str)(i).split(','))))
+    
+
+#Part A
+tbl = { "drug_names": name, "year": year, "avg_number_of_ingredients": no_ing}
+partA = pd.DataFrame(tbl)
+
+partA.groupby(["year"]).agg({'avg_number_of_ingredients':'mean', 'drug_names':'sum'})
+
+#Part B
+#assuming no nan values for route
+tbl2 = { "year": year, "route": route}
+partB = pd.DataFrame(tbl2)
+
+partB['number_of_ingredients'] = df['spl_product_data_elements'].apply(lambda x: len(x[0].split(',')))
+
+partB.groupby(['year', 'route']).mean()
+
